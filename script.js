@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const months = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"];
 
-  // Time update
+  // Update clock & date every second
   setInterval(() => {
     const now = new Date();
     let hour = now.getHours();
@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dateEl.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
   }, 1000);
 
+  // Fetch weather + location data from backend (API key hidden server-side)
   function getWeatherData() {
     if (!navigator.geolocation) {
       locationEl.textContent = "Geolocation not supported";
@@ -42,12 +43,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
+      ({ coords }) => {
+        const { latitude, longitude } = coords;
 
+        // 1. Fetch location name
         fetch(`/api/location?lat=${latitude}&lon=${longitude}`)
-          .then((res) => res.json())
-          .then((data) => {
+          .then(res => res.json())
+          .then(data => {
             if (data[0]) {
               const { name, state, country } = data[0];
               locationEl.textContent = `${name}, ${state || country}`;
@@ -55,9 +57,10 @@ document.addEventListener("DOMContentLoaded", () => {
           })
           .catch(() => locationEl.textContent = "Location unavailable");
 
+        // 2. Fetch weather data
         fetch(`/api/weather?lat=${latitude}&lon=${longitude}`)
-          .then((res) => res.json())
-          .then((data) => {
+          .then(res => res.json())
+          .then(data => {
             if (data.current && data.daily) {
               updateTodayWeather(data.current, data.daily[0]);
               updateForecast(data.daily.slice(1, 7));
@@ -66,10 +69,11 @@ document.addEventListener("DOMContentLoaded", () => {
           .catch(() => console.error("Weather fetch failed"));
       },
       () => {
+        // If location access is denied, use default (NYC)
         locationEl.textContent = "Defaulting to New York, NY";
         fetch(`/api/weather?lat=40.7128&lon=-74.0060`)
-          .then((res) => res.json())
-          .then((data) => {
+          .then(res => res.json())
+          .then(data => {
             if (data.current && data.daily) {
               updateTodayWeather(data.current, data.daily[0]);
               updateForecast(data.daily.slice(1, 7));
@@ -80,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateTodayWeather(current, today) {
-    currentConditionsEl.textContent = current.weather[0].description.replace(/\b\w/g, c => c.toUpperCase());
+    currentConditionsEl.textContent = capitalizeWords(current.weather[0].description);
     currentTempEl.textContent = `${Math.round(current.temp)}° F`;
     highTempEl.textContent = `High: ${Math.round(today.temp.max)}° F`;
     lowTempEl.textContent = `Low: ${Math.round(today.temp.min)}° F`;
@@ -102,6 +106,10 @@ document.addEventListener("DOMContentLoaded", () => {
         temps[1].textContent = `Low: ${Math.round(day.temp.min)}° F`;
       }
     });
+  }
+
+  function capitalizeWords(str) {
+    return str.replace(/\b\w/g, c => c.toUpperCase());
   }
 
   getWeatherData();
