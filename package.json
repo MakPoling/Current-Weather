@@ -1,0 +1,20 @@
+{
+  "name": "weather-app-main",
+  "version": "1.0.0",
+  "description": "Weather App created with JavaScript, CSS, HTML, and OpenWeatherAPI",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.0.1",
+    "express": "^5.1.0",
+    "git": "^0.1.5",
+    "heroku": "^8.7.1",
+    "node-fetch": "^3.3.2"
+  }
+}
